@@ -45,7 +45,77 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .role-badge.tech{background:rgba(139,144,167,.1);color:var(--text2);border-color:var(--border);}
 
 .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px);}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
+
+/* ===== RAIN ANIMATION ===== */
+@keyframes rainFall{
+  0%{transform:translateY(-40px) translateX(0px);opacity:0;}
+  8%{opacity:1;}
+  92%{opacity:.7;}
+  100%{transform:translateY(calc(100vh + 20px)) translateX(-18px);opacity:0;}
+}
+@keyframes rainFallFast{
+  0%{transform:translateY(-40px) translateX(0px);opacity:0;}
+  6%{opacity:.9;}
+  94%{opacity:.5;}
+  100%{transform:translateY(calc(100vh + 20px)) translateX(-22px);opacity:0;}
+}
+@keyframes rainSplash{
+  0%{transform:scale(0);opacity:.8;}
+  60%{transform:scale(1.4);opacity:.4;}
+  100%{transform:scale(2);opacity:0;}
+}
+@keyframes cloudDrift{
+  0%,100%{opacity:.18;transform:translateX(0px);}
+  50%{opacity:.28;transform:translateX(10px);}
+}
+
+/* Rain canvas sits inside sidebar */
+#sidebar-rain-canvas{
+  position:absolute;
+  top:0;left:0;width:100%;height:100%;
+  pointer-events:none;
+  z-index:0;
+}
+#drawer-rain-canvas{
+  position:absolute;
+  top:0;left:0;width:100%;height:100%;
+  pointer-events:none;
+  z-index:0;
+}
+
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:20px 0;
+  position:sticky;top:56px;
+  height:calc(100vh - 56px);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+/* cloud tint on sidebar top */
+.sidebar::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:80px;
+  background:linear-gradient(180deg,rgba(100,140,200,.18) 0%,transparent 100%);
+  pointer-events:none;
+  z-index:0;
+  animation:cloudDrift 5s ease-in-out infinite;
+}
+/* puddle shimmer at bottom */
+.sidebar::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:28px;
+  background:linear-gradient(0deg,rgba(100,160,230,.22) 0%,transparent 100%);
+  pointer-events:none;
+  z-index:0;
+  border-radius:0 0 0 0;
+}
+/* ensure nav items sit above rain */
+.sidebar>*{position:relative;z-index:1;}
 .sidebar-section{margin-bottom:8px;}
 .sidebar-label{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;padding:0 16px 8px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .15s;border-left:3px solid transparent;}
@@ -75,7 +145,37 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .mobile-menu-btn{display:none;width:38px;height:38px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;color:var(--text);}
 .mobile-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;backdrop-filter:blur(3px);}
 .mobile-drawer-overlay.open{display:block;}
-.mobile-drawer{position:fixed;top:0;left:0;bottom:0;width:82vw;max-width:300px;background:var(--surface);border-right:2px solid var(--accent);z-index:401;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;}
+.mobile-drawer{
+  position:fixed;top:0;left:0;bottom:0;
+  width:82vw;max-width:300px;
+  background:var(--surface);
+  border-right:2px solid var(--accent);
+  z-index:401;
+  transform:translateX(-100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;
+}
+.mobile-drawer::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:80px;
+  background:linear-gradient(180deg,rgba(100,140,200,.22) 0%,transparent 100%);
+  pointer-events:none;
+  z-index:0;
+  animation:cloudDrift 5s ease-in-out infinite;
+}
+.mobile-drawer::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:28px;
+  background:linear-gradient(0deg,rgba(100,160,230,.25) 0%,transparent 100%);
+  pointer-events:none;
+  z-index:0;
+}
+.mobile-drawer>*{position:relative;z-index:1;}
 .mobile-drawer.open{transform:translateX(0);}
 .mobile-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px solid var(--accent);background:var(--surface2);flex-shrink:0;}
 .mobile-drawer-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--surface3);color:var(--text2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
@@ -744,6 +844,7 @@ tr.check-row-drag-over-bottom{box-shadow:inset 0 -3px 0 0 var(--accent);}
 <!-- MOBILE SIDEBAR DRAWER -->
 <div class="mobile-drawer-overlay" id="mobile-drawer-overlay" onclick="closeMobileDrawer()"></div>
 <div class="mobile-drawer" id="mobile-drawer">
+  <canvas id="drawer-rain-canvas"></canvas>
   <div class="mobile-drawer-header">
     <div class="logo"><div class="logo-icon">🔧</div><span>SpareStock</span></div>
     <button class="mobile-drawer-close" onclick="closeMobileDrawer()">✕</button>
@@ -785,6 +886,7 @@ tr.check-row-drag-over-bottom{box-shadow:inset 0 -3px 0 0 var(--accent);}
 
 <div class="layout">
   <div class="sidebar">
+    <canvas id="sidebar-rain-canvas"></canvas>
     <div class="sidebar-section">
       <div class="sidebar-label">เมนูหลัก</div>
       <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span> ภาพรวมสต็อก</div>
@@ -1231,7 +1333,7 @@ tr.check-row-drag-over-bottom{box-shadow:inset 0 -3px 0 0 var(--accent);}
         <div class="modal-header"><div class="modal-title">🗂️ จัดการหมวดหมู่</div><button class="modal-close" onclick="closeModal('manageCat')">✕</button></div>
         <div class="modal-body">
           <div class="form-group" style="display:flex;gap:8px">
-            <input type="text" id="new-cat-input" placeholder="ชื่อหมวดหมู่ใหม่ เช่น 🔩 อุปกรณ์ท่อ" style="flex:1">
+            <input type="text" id="new-cat-input" placeholder="ชื่อหมวดหมู่ใหม่ เช่น 🎁 อุปกรณ์ท่อ" style="flex:1">
             <button class="btn btn-primary btn-sm" onclick="addNewCategory()">➕ เพิ่ม</button>
           </div>
           <div id="cat-list-manage"></div>
@@ -2574,7 +2676,7 @@ function renderInventory(){
           ${badge}${loc?'&nbsp;':''}${loc}${catTag?'&nbsp;':''}${catTag}
         </div>
         <div class="m-card-footer">
-          <button class="m-withdraw-btn" onclick="openUpdate(${p.id})">🔩 เบิกอะไหล่</button>
+          <button class="m-withdraw-btn" onclick="openUpdate(${p.id})">🎁 เบิกอะไหล่</button>
           <div class="m-card-actions">${adminBtns}</div>
         </div>
       </div>`;
@@ -2629,7 +2731,7 @@ function renderInventory(){
       <td>${maxHTML}</td>
       <td>${needOrderHTML}</td>
       <td>${stockBadge(p)}</td>
-      <td><div class="action-btns"><button class="icon-btn withdraw" onclick="openUpdate(${p.id})" title="เบิก/รับอะไหล่">🔩</button>${ob}${qb}${eb}${db}</div></td>
+      <td><div class="action-btns"><button class="icon-btn withdraw" onclick="openUpdate(${p.id})" title="เบิก/รับอะไหล่">🎁</button>${ob}${qb}${eb}${db}</div></td>
     </tr>`;
   }).join('');
 
@@ -3028,11 +3130,22 @@ function exportXlsx(mode){
   }
   if(mode==='history'){
     const d=[
-      ['วันที่','ชื่ออะไหล่','ประเภท','จำนวน','หน่วย','ผู้เบิก','หมายเหตุ'],
-      ...history_data.map(h=>[new Date(h.time).toLocaleString('th-TH'),h.partName,h.type==='receive'?'รับเข้า':h.type==='use'?'เบิกออก':'ปรับจำนวน',h.qty,h.unit,h.technician||'',h.note||''])
+      ['วันที่','รหัสอะไหล่','ชื่ออะไหล่','ประเภท','จำนวน','หน่วย','ไลน์การผลิต','เครื่องจักร','ผู้เบิก','หมายเหตุ'],
+      ...history_data.map(h=>[
+        new Date(h.time).toLocaleString('th-TH'),
+        h.partCode||'',
+        h.partName,
+        h.type==='receive'?'รับเข้า':h.type==='use'?'เบิกออก':'ปรับจำนวน',
+        h.qty,
+        h.unit,
+        h.prodline||'',
+        h.machine||'',
+        h.technician||'',
+        h.note||''
+      ])
     ];
     const ws=XLSX.utils.aoa_to_sheet(d);
-    ws['!cols']=[{wch:20},{wch:24},{wch:12},{wch:8},{wch:8},{wch:16},{wch:22}];
+    ws['!cols']=[{wch:20},{wch:13},{wch:24},{wch:12},{wch:8},{wch:8},{wch:16},{wch:16},{wch:16},{wch:22}];
     XLSX.utils.book_append_sheet(wb,ws,'ประวัติ (History)');
   }
   const date=new Date().toLocaleDateString('th-TH').replace(/\//g,'-');
@@ -4570,6 +4683,270 @@ if(gsUrl){
 }
 // ตรวจสอบ alert ตรวจเช็คประจำวัน
 setTimeout(checkGlobalAlert, 100);
+
+// ===== RAIN + LIGHTNING + THUNDER ENGINE =====
+(function initStorm(){
+  function isDark(){ return document.documentElement.classList.contains('dark'); }
+
+  /* ── Rain drop factory ── */
+  function makeRainDrop(){
+    return {
+      x: Math.random(), y: -Math.random() * 1.2,
+      len: 10 + Math.random() * 22,
+      speed: 0.004 + Math.random() * 0.009,
+      opacity: 0.28 + Math.random() * 0.55,
+      width: 0.8 + Math.random() * 1.2,
+      drift: -0.0006 - Math.random() * 0.0008,
+      splashing: false, splashR: 0, splashAlpha: 0, splashX: 0,
+    };
+  }
+
+  /* ── Lightning bolt generator ── */
+  // Returns array of {x1,y1,x2,y2} segments for a jagged bolt
+  function makeBolt(W, H){
+    const startX = (0.15 + Math.random() * 0.7) * W;
+    const segs = [];
+    let cx = startX, cy = 0;
+    const steps = 6 + Math.floor(Math.random() * 5);
+    const stepH = H / steps;
+    for(let i = 0; i < steps; i++){
+      const nx = cx + (Math.random() - 0.5) * W * 0.35;
+      const ny = cy + stepH * (0.7 + Math.random() * 0.6);
+      segs.push({x1: cx, y1: cy, x2: nx, y2: Math.min(ny, H)});
+      // branch occasionally
+      if(Math.random() < 0.35 && i < steps - 1){
+        const bx = nx + (Math.random() - 0.5) * W * 0.25;
+        const by = ny + stepH * (0.4 + Math.random() * 0.5);
+        segs.push({x1: nx, y1: ny, x2: bx, y2: Math.min(by, H), branch: true});
+      }
+      cx = nx; cy = ny;
+    }
+    return segs;
+  }
+
+  /* ── Shared lightning state (both canvases share one storm clock) ── */
+  const storm = {
+    // flash state
+    flashing: false,
+    flashAlpha: 0,          // 0-1 white overlay
+    flashPhase: 'none',     // 'in'|'hold'|'out'|'none'
+    flashTimer: 0,
+    bolt: null,             // current bolt segments
+    boltAlpha: 0,
+    // scheduling
+    nextStrikeIn: 4000 + Math.random() * 6000, // ms until next strike
+    lastTime: null,
+    // thunder audio (Web Audio API)
+    audioCtx: null,
+  };
+
+  /* ── Thunder sound via Web Audio ── */
+  function playThunder(){
+    try{
+      if(!storm.audioCtx) storm.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = storm.audioCtx;
+      // low rumble: filtered noise burst
+      const bufLen = ctx.sampleRate * 2.5;
+      const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for(let i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+
+      // Low-pass filter for deep rumble
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(180, ctx.currentTime);
+      lp.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 2.5);
+
+      // Amplitude envelope: sharp crack → long decay
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+
+      src.connect(lp);
+      lp.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+      src.stop(ctx.currentTime + 2.5);
+    }catch(e){}
+  }
+
+  /* ── Trigger a new lightning strike ── */
+  function triggerStrike(W, H){
+    storm.flashing = true;
+    storm.flashPhase = 'in';
+    storm.flashAlpha = 0;
+    storm.flashTimer = 0;
+    storm.bolt = makeBolt(W, H);
+    storm.boltAlpha = 1;
+    // Schedule thunder 0.1-0.4s after flash
+    setTimeout(playThunder, 100 + Math.random() * 300);
+    // Schedule next strike
+    storm.nextStrikeIn = 5000 + Math.random() * 9000;
+    storm.lastTime = performance.now();
+  }
+
+  /* ── Draw one frame for a canvas ── */
+  function drawFrame(canvas, drops, now){
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const dark = isDark();
+    const r = dark ? 140 : 100, g = dark ? 180 : 160, b = dark ? 230 : 220;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Background tint (brightens during flash)
+    const flashBrightness = storm.flashAlpha * 0.45;
+    const bgAlpha = (dark ? 0.07 : 0.05) + flashBrightness;
+    ctx.fillStyle = `rgba(${Math.round(80 + flashBrightness*175)},${Math.round(120 + flashBrightness*135)},${Math.round(180 + flashBrightness*75)},${bgAlpha})`;
+    ctx.fillRect(0, 0, W, H);
+
+    // White flash overlay
+    if(storm.flashing && storm.flashAlpha > 0.01){
+      ctx.save();
+      ctx.globalAlpha = storm.flashAlpha * 0.55;
+      ctx.fillStyle = 'rgba(220,230,255,1)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+
+    // Lightning bolt
+    if(storm.bolt && storm.boltAlpha > 0.02){
+      storm.bolt.forEach(seg => {
+        ctx.save();
+        ctx.globalAlpha = storm.boltAlpha * (seg.branch ? 0.55 : 1);
+        // outer glow
+        ctx.shadowColor = 'rgba(180,210,255,1)';
+        ctx.shadowBlur = seg.branch ? 10 : 18;
+        ctx.strokeStyle = seg.branch ? 'rgba(200,225,255,1)' : 'rgba(255,255,255,1)';
+        ctx.lineWidth = seg.branch ? 1 : 2.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(seg.x1, seg.y1);
+        ctx.lineTo(seg.x2, seg.y2);
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    // Rain drops
+    for(let i = 0; i < drops.length; i++){
+      const d = drops[i];
+      const px = d.x * W, py = d.y * H;
+      const angle = Math.atan2(d.drift * W, d.speed * H);
+
+      ctx.save();
+      ctx.globalAlpha = d.opacity;
+      ctx.strokeStyle = `rgba(${r},${g},${b},1)`;
+      ctx.lineWidth = d.width;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.sin(angle)*d.len*0.5, py + Math.cos(angle)*d.len);
+      ctx.stroke();
+      ctx.restore();
+
+      // Splash
+      if(d.splashing && d.splashAlpha > 0){
+        ctx.save();
+        ctx.globalAlpha = d.splashAlpha;
+        ctx.strokeStyle = `rgba(${r},${g},${b},1)`;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.ellipse(d.splashX * W, H - 4, d.splashR * 2.5, d.splashR * 0.7, 0, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.restore();
+        d.splashR += 0.8;
+        d.splashAlpha -= 0.045;
+        if(d.splashAlpha <= 0) d.splashing = false;
+      }
+
+      d.y += d.speed; d.x += d.drift;
+      if(d.y > 1.05){
+        if(!d.splashing){ d.splashing=true; d.splashX=d.x; d.splashR=1; d.splashAlpha=0.7; }
+        d.x=Math.random(); d.y=-0.05-Math.random()*0.5;
+        d.len=10+Math.random()*22; d.speed=0.004+Math.random()*0.009;
+        d.opacity=0.28+Math.random()*0.55; d.width=0.8+Math.random()*1.2;
+        d.drift=-0.0006-Math.random()*0.0008;
+      }
+    }
+  }
+
+  /* ── Update storm state each frame ── */
+  function updateStorm(W, H, now, dt){
+    // Count down to next strike
+    if(!storm.flashing){
+      storm.nextStrikeIn -= dt;
+      if(storm.nextStrikeIn <= 0) triggerStrike(W, H);
+    }
+
+    // Animate flash: sharp in → brief hold → fade out
+    if(storm.flashing){
+      storm.flashTimer += dt;
+      if(storm.flashPhase === 'in'){
+        storm.flashAlpha = Math.min(1, storm.flashTimer / 60);
+        if(storm.flashAlpha >= 1){ storm.flashPhase = 'hold'; storm.flashTimer = 0; }
+      } else if(storm.flashPhase === 'hold'){
+        // sometimes double-flash
+        if(storm.flashTimer > 80 + Math.random()*60){
+          storm.flashPhase = 'out'; storm.flashTimer = 0;
+        }
+      } else if(storm.flashPhase === 'out'){
+        storm.flashAlpha = Math.max(0, 1 - storm.flashTimer / 220);
+        storm.boltAlpha = Math.max(0, 1 - storm.flashTimer / 180);
+        if(storm.flashAlpha <= 0){
+          storm.flashing = false; storm.flashPhase = 'none';
+          storm.bolt = null; storm.boltAlpha = 0;
+          storm.lastTime = performance.now();
+        }
+      }
+    }
+  }
+
+  function fitCanvas(canvas, parent){
+    const rect = parent.getBoundingClientRect();
+    canvas.width  = Math.round(rect.width)  || parent.offsetWidth  || 220;
+    canvas.height = Math.round(rect.height) || parent.offsetHeight || 600;
+  }
+
+  // --- Sidebar ---
+  const sc = document.getElementById('sidebar-rain-canvas');
+  const sidebarEl = sc ? sc.closest('.sidebar') : null;
+  let sDrops = [];
+  if(sc && sidebarEl){
+    fitCanvas(sc, sidebarEl);
+    for(let i=0;i<55;i++) sDrops.push(makeRainDrop());
+    new ResizeObserver(()=>fitCanvas(sc,sidebarEl)).observe(sidebarEl);
+  }
+
+  // --- Mobile Drawer ---
+  const dc = document.getElementById('drawer-rain-canvas');
+  const drawerEl = dc ? dc.closest('.mobile-drawer') : null;
+  let dDrops = [];
+  if(dc && drawerEl){
+    fitCanvas(dc, drawerEl);
+    for(let i=0;i<50;i++) dDrops.push(makeRainDrop());
+    new ResizeObserver(()=>fitCanvas(dc,drawerEl)).observe(drawerEl);
+  }
+
+  // --- RAF loop ---
+  let lastT = performance.now();
+  function loop(now){
+    const dt = now - lastT; lastT = now;
+    // pick a reference canvas size for storm timing (prefer sidebar)
+    const refW = sc ? sc.width : (dc ? dc.width : 220);
+    const refH = sc ? sc.height : (dc ? dc.height : 600);
+    updateStorm(refW, refH, now, dt);
+    if(sc && sidebarEl && sDrops.length) drawFrame(sc, sDrops, now);
+    if(dc && drawerEl  && dDrops.length) drawFrame(dc, dDrops, now);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
 </script>
 </body>
 </html>
